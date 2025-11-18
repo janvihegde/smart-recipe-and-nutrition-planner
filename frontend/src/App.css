@@ -1,0 +1,178 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+/* -------------------- Navbar -------------------- */
+.navbar {
+    width: 100%;
+    background: #ffffff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 0.75rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.navbar-logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #059669; /* Tailwind green-600 */
+}
+
+.navbar-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    font-size: 1rem;
+    color: #4b5563; /* gray-700 */
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-link:hover {
+    color: #059669;
+}
+
+.nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: #059669;
+    border-radius: 3px;
+}
+
+/* -------------------- Page Container & Sides -------------------- */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: #fef9ff;
+}
+
+.page-main {
+    flex: 1;
+    padding: 2rem;
+    max-width: 1200px; /* slightly narrower to show sides */
+    margin: 0 auto;
+    position: relative;
+    box-sizing: border-box;
+}
+
+
+/* Left and right colored side bars */
+.page-main::before,
+.page-main::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px; /* width of colored sides */
+    z-index: 0;
+    border-radius: 10px; /* rounded edges for subtle look */
+}
+
+.page-main::before {
+    left: -90px; /* slightly outside the main content */
+    background: linear-gradient(180deg, #d1fae5, #a7f3d0); /* soft green gradient */
+}
+
+.page-main::after {
+    right: -90px;
+    background: linear-gradient(180deg, #bfdbfe, #93c5fd); /* soft blue gradient */
+}
+
+/* Ensure content stays above colored sides */
+.page-main > * {
+    position: relative;
+    z-index: 1;
+}
+/* -------------------- Footer -------------------- */
+.footer {
+    width: 100%;
+    background: #f3f4f6; /* gray-100 */
+    padding: 1.0rem 0.25rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #4b5563; /* gray-700 */
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+    margin-top: 3rem;
+}
+
+.footer-content p {
+    margin: 0.2rem 0;
+}
+
+/* -------------------- Page Headings -------------------- */
+h1, h2, h3 {
+    font-family: 'Arial', sans-serif;
+    color: #1f2937; /* gray-800 */
+    margin-bottom: 1rem;
+}
+
+/* -------------------- Responsive -------------------- */
+@media (max-width: 1024px) {
+    .navbar-links { gap: 1rem; }
+}
+
+@media (max-width: 768px) {
+    .page-main {
+        padding: 1rem;
+    }
+    .navbar-links {
+        flex-wrap: wrap;
+    }
+}
+@media (max-width: 1024px) {
+    .page-main::before,
+    .page-main::after {
+        display: none; /* hide colored sides on tablets/small screens */
+    }
+}
