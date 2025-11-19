@@ -5,7 +5,10 @@ import com.janvihegde.smartrecipe.repository.RecipeRepository;
 import com.janvihegde.smartrecipe.service.NutritionService;
 import com.janvihegde.smartrecipe.service.SubstitutionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,9 @@ public class RecipeController {
 
     @Autowired
     private NutritionService nutritionService;
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     // GET all recipes
     @GetMapping
@@ -102,6 +108,43 @@ public class RecipeController {
     public String debug() {
         long count = recipeRepository.count();
         return "Cluster reachable. Recipe count = " + count;
+    }
+
+    @GetMapping("/search")
+    public List<Recipe> searchRecipes(
+            @RequestParam(required = false) String query,
+            @RequestParam(required = false) String cuisine,
+            @RequestParam(required = false) Integer maxCalories) {
+
+        Query mongoQuery = new Query();
+
+        if (query != null && !query.isEmpty()) {
+            // Criteria for partial, case-insensitive search across three fields
+            Criteria textSearch = new Criteria().orOperator(
+                    Criteria.where("name").regex(query, "i"),
+                    Criteria.where("instructions").regex(query, "i"),
+                    Criteria.where("ingredients").regex(query, "i")
+            );
+            // This is where addCriteria is used on the Query object
+            mongoQuery.addCriteria(textSearch);
+        }
+
+        if (cuisine != null && !cuisine.isEmpty()) {
+            // Filter by Cuisine (exact match, case-insensitive)
+            mongoQuery.addCriteria(Criteria.where("cuisine").regex("^" + cuisine + "$", "i"));
+        }
+
+        if (maxCalories != null) {
+            // Filter by Calories (Less than or equal to)
+            mongoQuery.addCriteria(Criteria.where("calories").lte(maxCalories));
+        }
+
+        // If no filters are provided, return all recipes (same as /api/recipe GET)
+        if (!mongoQuery.getQueryObject().isEmpty()) {
+            return mongoTemplate.find(mongoQuery, Recipe.class);
+        } else {
+            return recipeRepository.findAll();
+        }
     }
 
 

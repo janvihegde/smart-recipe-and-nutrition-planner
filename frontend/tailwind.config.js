@@ -8,8 +8,22 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                primary: "#4F46E5",      // Indigo
-                secondary: "#6366F1",
+                primary: {
+                    50: '#EEF2FF', // Lightest indigo shade
+                    100: '#E0E7FF',
+                    200: '#C7D2FE',
+                    400: '#818CF8',
+                    500: '#6366F1', // Indigo (Used as main button/highlight)
+                    600: '#4F46E5', // Your base Indigo
+                    700: '#4338CA',
+                    800: '#3730A3',
+                    900: '#312E81',
+                },
+                secondary: {
+                    400: '#A78BFA', // Lighter version of secondary
+                    500: '#7C3AED', // Your secondary purple
+                    600: '#6D28D9',
+                },
                 glass: "rgba(255, 255, 255, 0.15)",
             },
             backdropBlur: {

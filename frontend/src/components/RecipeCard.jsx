@@ -1,36 +1,238 @@
-import React from "react";
-import "./Dashboard.css";
+// File: frontend/src/pages/RecipePage.jsx
+
+import React, { useState, useEffect, useCallback } from "react";
+import RecipeCard from "../components/RecipeCard";
+import { FaPlus, FaSpinner } from "react-icons/fa";
+import axios from "axios";
+
+const API_BASE_URL = "/api/recipe";
+
+// Component now receives global search state and reset function from App.jsx
+const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
+    // Form state
+    const [name, setName] = useState("");
+    const [ingredients, setIngredients] = useState("");
+    const [instructions, setInstructions] = useState("");
+    const [cuisine, setCuisine] = useState("");
+    const [calories, setCalories] = useState("");
+
+    // UI State
+    const [message, setMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [recipes, setRecipes] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // 🛑 REMOVED: Local search states (searchQuery, filterCuisine, filterMaxCalories) 🛑
+
+    // Function to fetch recipes from the backend (Handles global search from Navbar)
+    const fetchRecipes = useCallback(async () => {
+        setIsSearching(true);
+        const params = {};
+
+        // Use global search query from Navbar if present
+        if (globalSearch.query) {
+            params.query = globalSearch.query;
+            // Note: If you add complex filters (cuisine/maxCalories) to the Navbar later,
+            // the logic here will need to check globalSearch.cuisine/globalSearch.maxCalories.
+        }
+
+        const url = params.query ? `${API_BASE_URL}/search` : API_BASE_URL;
+
+        try {
+            const response = await axios.get(url, { params });
+            setRecipes(response.data);
+
+            // 🛑 CRITICAL FIX: Reset the global search prop after fetching
+            if (globalSearch.query) {
+                resetGlobalSearch();
+            }
+
+        } catch (error) {
+            console.error("Failed to fetch recipes:", error);
+            setMessage("Error connecting to database or fetching recipes.");
+        } finally {
+            setIsSearching(false);
+        }
+    }, [globalSearch.query, resetGlobalSearch]); // Dependency only on the core query
 
 
-const RecipeCard = ({ recipe }) => {
+    // Fetch recipes when the component mounts or when the global search query changes
+    useEffect(() => {
+        // Trigger fetch if a search query exists or if recipes are empty (initial load)
+        if (globalSearch.query || recipes.length === 0) {
+            fetchRecipes();
+        }
+    }, [fetchRecipes, globalSearch.query]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (isLoading) return;
+
+        setIsLoading(true);
+
+        const recipeData = {
+            name,
+            ingredients: ingredients.split('\n').map(ing => ing.trim()).filter(ing => ing.length > 0),
+            instructions,
+            cuisine,
+            calories: parseInt(calories) || 0,
+        };
+
+        try {
+            const res = await axios.post(API_BASE_URL, recipeData);
+            setMessage(`Recipe '${res.data.name}' added successfully! Nutrition analysis and substitutions running...`);
+
+            // Clear form
+            setName("");
+            setIngredients("");
+            setInstructions("");
+            setCuisine("");
+            setCalories("");
+
+            // Re-fetch the list
+            fetchRecipes();
+
+        } catch (error) {
+            console.error("Failed to add recipe:", error.response?.data || error.message);
+            setMessage("Failed to add recipe. Check console for API connection details.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+
     return (
-        <div className="recipe-card shadow-lg rounded-xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-all duration-300 bg-white">
-            <img
-                src={recipe.image || "https://via.placeholder.com/300"}
-                alt={recipe.name}
-                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
-            />
+        <div className="min-h-screen bg-gray-50 flex justify-center p-6 pt-10">
+            <div className="flex flex-col gap-10 w-full max-w-6xl">
 
-            <div className="p-4 flex flex-col gap-2">
-                <h2 className="text-xl font-semibold text-gray-800 hover:text-green-600 transition-colors duration-300">
-                    {recipe.name}
-                </h2>
+                {/* Add New Recipe Section (Form) */}
+                <div className="bg-white shadow-xl rounded-2xl p-8 w-full border border-primary-200 mx-auto max-w-3xl">
+                    <h1 className="text-3xl font-extrabold mb-8 text-center text-primary-800">
+                        Add New Recipe
+                    </h1>
 
-                <p className="text-sm text-gray-600 line-clamp-2">{recipe.description}</p>
+                    {message && (
+                        <p className={`mb-4 text-center text-sm p-3 rounded-lg
+                            ${message.startsWith('Failed') ? 'bg-red-100 text-red-600' : 'bg-primary-100 text-primary-600'} font-medium`}>
+                            {message}
+                        </p>
+                    )}
 
-                <div className="flex items-center justify-between mt-2">
-          <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-            {recipe.category || "General"}
-          </span>
-                    <span className="text-xs text-gray-500">⏱ {recipe.time || "30 min"}</span>
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+
+                        {/* 1. Recipe Name */}
+                        <div>
+                            <label className="block font-semibold text-gray-700 mb-1">Recipe Name</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                // Theme fix: ensures text is dark
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-primary-400 focus:border-primary-400 text-gray-800"
+                                placeholder="Enter recipe name"
+                            />
+                        </div>
+
+                        {/* 2. Cuisine & Calories */}
+                        <div className="flex gap-4">
+                            <div className="w-1/2">
+                                <label className="block font-semibold text-gray-700 mb-1">Cuisine (Optional)</label>
+                                <input
+                                    type="text"
+                                    value={cuisine}
+                                    onChange={(e) => setCuisine(e.target.value)}
+                                    disabled={isLoading}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-secondary-400 focus:border-secondary-400 text-gray-800"
+                                    placeholder="e.g., Italian, Mexican"
+                                />
+                            </div>
+                            <div className="w-1/2">
+                                <label className="block font-semibold text-gray-700 mb-1">Calories (Approx.)</label>
+                                <input
+                                    type="number"
+                                    value={calories}
+                                    onChange={(e) => setCalories(e.target.value)}
+                                    min="0"
+                                    disabled={isLoading}
+                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm focus:ring-2 focus:ring-secondary-400 focus:border-secondary-400 text-gray-800"
+                                    placeholder="e.g., 450"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 3. Ingredients */}
+                        <div>
+                            <label className="block font-semibold text-gray-700 mb-1">Ingredients (One per line)</label>
+                            <textarea
+                                value={ingredients}
+                                onChange={(e) => setIngredients(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm h-32 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 text-gray-800"
+                                placeholder="Enter ingredients one per line"
+                            />
+                        </div>
+
+                        {/* 4. Instructions */}
+                        <div>
+                            <label className="block font-semibold text-gray-700 mb-1">Instructions</label>
+                            <textarea
+                                value={instructions}
+                                onChange={(e) => setInstructions(e.target.value)}
+                                required
+                                disabled={isLoading}
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 shadow-sm h-40 focus:ring-2 focus:ring-primary-400 focus:border-primary-400 text-gray-800"
+                                placeholder="Write the preparation steps here..."
+                            />
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-primary-600 text-primary-50 py-3 rounded-xl text-lg font-bold hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isLoading ? (
+                                <FaSpinner className="animate-spin inline mr-2" />
+                            ) : (
+                                <FaPlus className="inline mr-2" />
+                            )}
+                            {isLoading ? "Saving Recipe..." : "Add Smart Recipe"}
+                        </button>
+                    </form>
                 </div>
 
-                <button className="mt-3 w-full py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-300">
-                    View Recipe
-                </button>
+                {/* 🛑 REMOVED: The entire local "Search and Filter Section" block has been removed 🛑 */}
+
+                {/* List Recipes Section */}
+                <div className="w-full mx-auto">
+                    <h2 className="text-3xl font-extrabold mb-8 text-center text-primary-800">
+                        {/* Title dynamically changes based on Navbar search */}
+                        {globalSearch.query
+                            ? `Search Results for "${globalSearch.query}" (${recipes.length})`
+                            : `All Saved Recipes (${recipes.length})`
+                        }
+                    </h2>
+
+                    {isSearching ? (
+                        <p className="text-center text-primary-500 p-8 border border-primary-200 bg-white rounded-xl shadow-lg">
+                            <FaSpinner className="animate-spin inline mr-2" /> Loading recipes...
+                        </p>
+                    ) : recipes.length === 0 ? (
+                        <p className="text-center text-gray-500 p-8 border border-gray-200 bg-white rounded-xl shadow-lg">No recipes found. Add one above! 🍜</p>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {recipes.map((recipe) => (
+                                <RecipeCard key={recipe.id} recipe={recipe} />
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
 };
 
-export default RecipeCard;
+export default RecipePage;
