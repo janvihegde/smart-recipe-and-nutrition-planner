@@ -1,13 +1,13 @@
-
+// File: frontend/src/pages/RecipePage.jsx
 
 import React, { useState, useEffect, useCallback } from "react";
 import RecipeCard from "../components/RecipeCard";
-import { FaPlus, FaSpinner, FaSearch } from "react-icons/fa";
+import { FaPlus, FaSpinner } from "react-icons/fa";
 import axios from "axios";
 
 const API_BASE_URL = "/api/recipe";
 
-// Component now receives global search state and a function to reset it from App.jsx
+// Component now receives global search state and reset function from App.jsx
 const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
     // Form state
     const [name, setName] = useState("");
@@ -22,30 +22,25 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
     const [recipes, setRecipes] = useState([]);
     const [isSearching, setIsSearching] = useState(false);
 
-    // NOTE: Local search state variables (searchQuery, filterCuisine, filterMaxCalories)
-    // and handleFilterReset have been REMOVED as per your request.
-
-    // Function to fetch recipes from the backend (Uses globalSearch prop)
+    // Function to fetch recipes (Handles global search from Navbar)
     const fetchRecipes = useCallback(async () => {
         setIsSearching(true);
         const params = {};
 
-        // 🛑 CRITICAL: Use the query from the globalSearch prop
+        // Use global search query from Navbar if present
         if (globalSearch.query) {
             params.query = globalSearch.query;
-            // You can optionally allow filtering by cuisine/calories in the Navbar too:
             if (globalSearch.cuisine) params.cuisine = globalSearch.cuisine;
             if (globalSearch.maxCalories) params.maxCalories = parseInt(globalSearch.maxCalories) || undefined;
         }
 
-        const url = globalSearch.query ? `${API_BASE_URL}/search` : API_BASE_URL;
+        const url = params.query ? `${API_BASE_URL}/search` : API_BASE_URL;
 
         try {
             const response = await axios.get(url, { params });
             setRecipes(response.data);
 
-            // 🛑 CRITICAL FIX: Reset the global search prop after fetching
-            // This allows the Navbar search to be ready for a new query
+            // 🛑 FIX: Call the reset function to prevent infinite re-rendering of the component
             if (globalSearch.query) {
                 resetGlobalSearch();
             }
@@ -58,7 +53,6 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
         }
     }, [globalSearch.query, globalSearch.cuisine, globalSearch.maxCalories, resetGlobalSearch]);
 
-
     // Fetch recipes when the component mounts or when the global search query changes
     useEffect(() => {
         fetchRecipes();
@@ -66,7 +60,6 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (isLoading) return;
 
         setIsLoading(true);
@@ -83,7 +76,7 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
             const res = await axios.post(API_BASE_URL, recipeData);
             setMessage(`Recipe '${res.data.name}' added successfully! Nutrition analysis and substitutions running...`);
 
-            // Clear form
+            // Clear form state locally
             setName("");
             setIngredients("");
             setInstructions("");
@@ -103,7 +96,7 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
 
 
     return (
-        <div className="min-h-screen bg-gray-50 flex justify-center p-6 pt-10">
+        <div className="flex justify-center p-6 pt-10">
             <div className="flex flex-col gap-10 w-full max-w-6xl">
 
                 {/* Add New Recipe Section (Form) */}
@@ -121,12 +114,14 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
 
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
 
+                        {/* Input Fields - Ensure text-gray-800 is used for text color */}
                         {/* 1. Recipe Name */}
                         <div>
                             <label className="block font-semibold text-gray-700 mb-1">Recipe Name</label>
                             <input
                                 type="text"
                                 value={name}
+                                // 🛑 FIX: onChange handler is the only thing controlling state, preventing reset
                                 onChange={(e) => setName(e.target.value)}
                                 required
                                 disabled={isLoading}
@@ -135,7 +130,7 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
                             />
                         </div>
 
-                        {/* 2. Cuisine & Calories (New Fields) */}
+                        {/* 2. Cuisine & Calories */}
                         <div className="flex gap-4">
                             <div className="w-1/2">
                                 <label className="block font-semibold text-gray-700 mb-1">Cuisine (Optional)</label>
@@ -188,7 +183,7 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
                             />
                         </div>
 
-                        {/* Submit Button - Shows spinner when loading */}
+                        {/* Submit Button (text-primary-50 for color contrast) */}
                         <button
                             type="submit"
                             disabled={isLoading}
@@ -204,12 +199,11 @@ const RecipePage = ({ globalSearch, resetGlobalSearch }) => {
                     </form>
                 </div>
 
-                {/* 🛑 SEARCH AND FILTER SECTION REMOVED - NOW EXCLUSIVELY IN NAVBAR 🛑 */}
+                {/* 🛑 SEARCH AND FILTER SECTION REMOVED - PER USER REQUEST 🛑 */}
 
                 {/* List Recipes Section */}
                 <div className="w-full mx-auto">
                     <h2 className="text-3xl font-extrabold mb-8 text-center text-primary-800">
-                        {/* Title dynamically changes to show search results */}
                         {globalSearch.query
                             ? `Search Results for "${globalSearch.query}" (${recipes.length})`
                             : `All Saved Recipes (${recipes.length})`
