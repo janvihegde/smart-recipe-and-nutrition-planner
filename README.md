@@ -1,192 +1,113 @@
-🍽️ Smart Recipe Planner
+# 🥗 Smart Recipe & Nutrition Planner
 
-A collaborative recipe management system with nutrition analysis and smart ingredient substitutions.
+> A modern, full-stack application to manage your recipes, analyze nutrition automatically, and plan your weekly meals with style.
 
-📌 Overview
 
-The Smart Recipe Planner helps users create and manage recipes while automatically analyzing their nutritional content and suggesting healthy substitutions.
-This README is written to ensure that any team member can understand, continue, and extend the project with ease.
 
 
+## 📖 Overview
 
+**Smart Recipe Planner** is designed to take the hassle out of healthy eating. Unlike standard recipe books, this application uses external APIs to automatically calculate the nutritional value (calories, protein, fat, etc.) of any recipe you add. It also features an interactive "Click-to-Fill" weekly meal planner and a stunning **Glassmorphism UI**.
 
-📦 Folder Responsibilities
-📁 controller/
+### ✨ Key Features
 
-Handles all HTTP requests.
-Examples:
+* **🥑 Smart Nutrition Analysis:** Automatically calculates calories and macronutrients for any ingredient list using the CalorieNinjas API.
+* **🔄 Ingredient Substitutions:** Suggests healthy alternatives for common ingredients.
+* **📅 Interactive Meal Planner:** Visually plan your Breakfast, Lunch, and Dinner for the entire week.
+* **🎨 Glassmorphism UI:** A beautiful, modern interface built with React and Tailwind CSS v4, featuring translucent cards and smooth animations.
+* **🔍 Instant Search:** Filter your recipe collection instantly by name, cuisine, or calories.
+* **📊 Dashboard Overview:** Quick insights into your recipe collection.
 
-/recipes
+---
 
-/recipes/{id}
+## 🛠️ Tech Stack
 
-/recipes/nutrition
+### **Frontend**
+* **React (Vite):** Fast, modern UI framework.
+* **Tailwind CSS v4:** Utility-first styling with custom animations.
+* **React Icons:** For beautiful, consistent iconography.
+* **Axios:** For seamless API communication.
 
-/recipes/substitute/{ingredient}
+### **Backend**
+* **Java Spring Boot:** Robust REST API backend.
+* **MongoDB:** NoSQL database for storing recipes and meal plans.
+* **Maven:** Dependency management.
+* **External APIs:** CalorieNinjas (Nutrition Data).
 
-Everything the frontend calls is here.
+---
 
-📁 service/
+## 🚀 Getting Started
 
-Contains logic such as:
+Follow these steps to set up the project locally.
 
-Calculating nutrition
+### Prerequisites
+* **Node.js** (v16 or higher)
+* **Java JDK** (17 or higher)
+* **MongoDB** (Running locally or a simplified Atlas URI)
 
-Smart ingredient substitutions
+### 1️⃣ Backend Setup (Spring Boot)
 
-Cleaning and validating data
+1.  Navigate to the backend folder:
+    ```bash
+    cd backend
+    ```
+2.  Configure your database in `src/main/resources/application.properties`:
+    ```properties
+    spring.data.mongodb.uri=mongodb://localhost:27017/smartrecipe
+    ```
+3.  Run the application:
+    ```bash
+    ./mvnw spring-boot:run
+    ```
+    The backend server will start on `http://localhost:8080`.
 
-Handling complex operations
+### 2️⃣ Frontend Setup (React + Vite)
 
-Controller → Service → Repository.
+1.  Open a new terminal and navigate to the frontend folder:
+    ```bash
+    cd frontend
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start the development server:
+    ```bash
+    npm run dev
+    ```
+4.  Open your browser at `http://localhost:5173` to see the app!
 
-📁 repository/
+---
 
-Contains interfaces for MongoDB operations using:
 
-MongoRepository<Recipe, String>
+## 🔌 API Endpoints
 
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/recipe` | Get all recipes |
+| `POST` | `/api/recipe` | Add a new recipe (triggers nutrition analysis) |
+| `GET` | `/api/recipe/search?query=...` | Search recipes by keyword |
+| `GET` | `/api/mealplan/latest` | Fetch the current weekly plan |
+| `POST` | `/api/mealplan` | Save/Update a weekly plan |
 
-Spring Boot auto-generates all CRUD operations.
+---
 
-📁 model/
+## 🤝 Contributing
 
-Defines schemas stored in MongoDB.
-Example:
+Contributions are welcome! If you have ideas for features (like an automated shopping list or user auth), feel free to fork the repo and submit a pull request.
 
-@Document("recipe")
-public class Recipe { ... }
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
 
-📁 resources/
+---
 
-application.properties → MongoDB configuration
+## 📝 License
 
-static/ → Only used if frontend is bundled inside backend (optional)
+Distributed under the MIT License. See `LICENSE` for more information.
 
-🛠️ Backend Features
-✔️ CRUD Operations
+---
 
-Add a recipe
-
-Update recipe
-
-Delete recipe
-
-Get single recipe
-
-Get all recipes
-
-✔️ Nutrition Analysis
-
-Automatically calculates:
-
-Calories
-
-Protein
-
-Fat
-
-Carbs
-
-Backend handles all calculations — frontend only displays results.
-
-✔️ Smart Ingredient Substitutions
-
-For any ingredient, backend returns healthier alternatives.
-
-Example call:
-
-GET /recipes/substitute/tomato
-
-🎨 Frontend Responsibilities
-
-The frontend team must build the UI and connect to backend APIs.
-
-Pages to build:
-
-Recipe List
-
-View Recipe
-
-Add Recipe
-
-Edit Recipe
-
-Nutrition Display
-
-Smart Substitution Display
-
-How to connect to backend (Axios/fetch):
-
-Example:
-
-fetch("http://localhost:8080/api/recipe")
-  .then(res => res.json())
-  .then(data => console.log(data));
-
-🔌 API Endpoints
-📍 GET — All Recipes
-GET /api/recipe
-
-📍 POST — Add Recipe
-POST /api/recipe
-
-
-Example body:
-
-{
-  "name": "Paneer Tikka",
-  "ingredients": ["Paneer", "Curd", "Spices"],
-  "instructions": "Mix and grill"
-}
-
-📍 GET — Nutrition Analysis
-POST /api/recipe/nutrition
-
-📍 GET — Smart Substitution
-GET /api/recipe/substitute/{ingredient}
-
-🧪 Testing Using Postman
-
-Your team can test all backend APIs individually without frontend.
-
-Example POST body for testing:
-
-{
-  "name": "Maggi",
-  "ingredients": ["Noodles", "Masala"],
-  "instructions": "Boil and mix"
-}
-
-👨‍👩‍👧‍👦 For the Team — How to Continue Development
-🔧 Backend Developers
-
-Add more API endpoints
-
-Improve nutrition accuracy
-
-Add new ingredient substitutions
-
-Add weekly meal planner (future)
-
-🎨 Frontend Developers
-
-Build UI pages
-
-Connect UI to backend
-
-Display nutritional charts and values
-
-Create search/filter UI
-
-📄 Documentation Team
-
-Add screenshots
-
-Add API usage examples
-
-Add a system architecture diagram
-
-📘 Notes
-
-backend logic is complete for CRUD + Nutrition + Substitutions..
+Made with ❤️ by Janvi Hegde and Manasvi HEgde
